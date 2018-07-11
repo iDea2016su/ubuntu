@@ -50,6 +50,7 @@ int main(int argc,char *argv[])
   if(listen(sockfd,BACKLOG)==-1)
   {
     perror("listen");
+    cout<<"start listening"<<endl;
     exit(1);
   }
   //连接端口并处理

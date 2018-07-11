@@ -14,5 +14,5 @@ ota_file_class.o : ota_file_class.h
 .PHONY : clean
 
 clean : 
-	rm main $(objects)
+	-rm main $(objects)
 
