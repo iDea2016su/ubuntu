@@ -20,10 +20,10 @@ int main(int argc,char *argv[])
 {
   //更新文件处理部分
   cout<<"socket project 02"<<endl;
-  Firmware firm("./firmware/firmware_2.0.bin");
-  long len = firm.GetFileLength();
-  string firm_buf;
-  firm_buf = firm.GetFileString();
+  //Firmware firm("./firmware/firmware_2.0.bin");
+  //long len = firm.GetFileLength();
+  //string firm_buf;
+  //firm_buf = firm.GetFileString();
   //cout<<firm_buf<<endl;
   //sock处理部分
   int sockfd,newfd;// listen on sockfd socket and accept on newfd
