@@ -39,7 +39,7 @@ int main(int argc,char *argv[])
   //设置IP TCP 和端口
   service_addr.sin_family = AF_INET;
   service_addr.sin_port = htons(MYPORT);
-  service_addr.sin_addr.s_addr = INADDR_ANY;  //自动适应服务器IP
+  service_addr.sin_addr.s_addr = inet_addr("127.0.0.1");  //自动适应服务器IP
   memset(&(service_addr.sin_zero),0,8);
   //帮顶socket和IP端口
   if(bind(sockfd,(struct sockaddr*)&service_addr,sizeof(struct sockaddr))==-1)
