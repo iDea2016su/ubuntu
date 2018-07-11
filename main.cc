@@ -30,6 +30,7 @@ int main(int argc,char *argv[])
   struct sockaddr_in service_addr;  
   struct sockaddr_in client_addr;
   int sin_size;
+  cout<<"create a socket"<<endl;
   if((sockfd=socket(AF_INET,SOCK_STREAM,0))==-1)  //创建一个socket描述符
   {
     perror("socket"); // 在系统打印的错误信息之前加入perror的内容，方便定位
@@ -46,19 +47,25 @@ int main(int argc,char *argv[])
     perror("bind");
     exit(1);
   }
+
+    cout<<"start listening"<<endl;
   //监听端口
   if(listen(sockfd,BACKLOG)==-1)
   {
     perror("listen");
-    cout<<"start listening"<<endl;
     exit(1);
   }
   //连接端口并处理
   sin_size = sizeof(struct sockaddr_in);
+  cout<<"loop start"<<endl;
+  int i=0;
   while(1)
   {
+    cout<<"count　:"<<i++<<endl;
+    sin_size = sizeof(struct sockaddr_in);
     if((newfd = accept(sockfd,(struct sockaddr*)&client_addr,(socklen_t*)&sin_size))==-1)
     {
+      cout<<"accept"<<endl;
       perror("accept");
       continue;
     }
@@ -73,6 +80,7 @@ int main(int argc,char *argv[])
       close(newfd);
       while(waitpid(-1,NULL,WNOHANG)>0);
     }
+    
   }
   return 0;
 }
