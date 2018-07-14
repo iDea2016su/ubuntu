@@ -20,10 +20,10 @@ int main(int argc,char *argv[])
 {
   //更新文件处理部分
   cout<<"socket project 02"<<endl;
-  //Firmware firm("./firmware/firmware_2.0.bin");
-  //long len = firm.GetFileLength();
-  //string firm_buf;
-  //firm_buf = firm.GetFileString();
+  Firmware firm("./firmware/firmware_2.0.bin");
+  long len = firm.GetFileLength();
+  string firm_buf;
+  firm_buf = firm.GetFileString();
   //cout<<firm_buf<<endl;
   //sock处理部分
   int sockfd,newfd;// listen on sockfd socket and accept on newfd
@@ -72,18 +72,88 @@ int main(int argc,char *argv[])
     cout<<"Client IP"<<inet_ntoa(client_addr.sin_addr)<<endl;
     if(!fork())  //child process
     {
-      
-      if(send(newfd,"haha",4,0)==-1)
-      {
-        perror("send");
+      char * terminal_request = (char*)malloc(100*sizeof(char));
+      if(recv(newfd,terminal_request,100,0)==-1)
+      { 
+        cout<<"can not get first terminal pack"<<endl;
+        close(newfd);
+        exit(0);
       }
+      if(NULL==strstr(terminal_request,"IMEI"))
+      {
+        cout<<"can not get imei"<<endl;
+        close(newfd);
+        exit(0);
+      }
+      char * result = strstr(terminal_request,"IMEI");
+      cout<<result<<endl;
+      int pack_count = 0;
+      while(1)
+      {
+        pack_count++;
+        char  pack_count_flag[6]={0};
+        pack_count_flag[0] = 'S';
+        pack_count_flag[1] = 'T';
+        pack_count_flag[2] = 'A';
+        pack_count_flag[3] = pack_count/100+'0';
+        pack_count_flag[4] = (pack_count/10)%10+'0';
+        pack_count_flag[5] = pack_count%10+'0';
+        if(recv(newfd,terminal_request,100,0)==-1)
+        { 
+          cout<<"can not get terminal request firmware pack"<<endl;
+          close(newfd);
+          exit(0);
+        }
+        if(NULL==strstr(terminal_request,pack_count_flag))
+        {
+          cout<<"can not get imei"<<endl;
+          close(newfd);
+          exit(0);
+        }
+        char *buf = (char*)malloc(109*sizeof(char));
+        strcpy(buf,"STA");
+        char  pack_back_flag[3]={0};
+        pack_back_flag[0] = pack_count/100+'0';
+        pack_back_flag[1] = (pack_count/10)%10+'0';
+        pack_back_flag[2] = pack_count%10+'0';
+        strcat(buf,pack_back_flag);
+        for(int i=0;i<100;i++)
+        {
+          buf[i+6] = firm_buf[(pack_count-1)*100+i];
+        }
+        buf[106] = 'E';
+        buf[107] = 'N';
+        buf[108] = 'D';
+        if(send(newfd,buf,109,0)==-1)
+        { 
+          cout<<"can not send terminal request firmware pack"<<endl;
+          free(buf);
+          close(newfd);
+          exit(0);
+        }
+        free(buf);
+        if(pack_count>=30)
+        {
+          break;
+        }
+      }
+      free(terminal_request);          
+      cout<<"update finish"<<endl;
       close(newfd);
-      while(waitpid(-1,NULL,WNOHANG)>0);
-    }
-    
+      exit(0);
+     }
+    int terminal;
+    while(waitpid(-1,NULL,WNOHANG)>0);
   }
   return 0;
 }
+
+
+
+
+
+
+
 
 
 
