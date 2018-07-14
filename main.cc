@@ -86,7 +86,7 @@ int main(int argc,char *argv[])
         exit(0);
       }
       char * result = strstr(terminal_request,"IMEI");
-      cout<<result<<endl;
+      cout<<"miei is "<<result<<endl;
       int pack_count = 0;
       while(1)
       {
