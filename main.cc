@@ -12,6 +12,8 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include "ota_file_class.h"
+#include "ota_string_class.h"
+#include "terminal_reply_class.h"
 
 using namespace std;
 using namespace Json;
@@ -21,9 +23,6 @@ using namespace Json;
 int main(int argc,char *argv[])
 {
   //更新文件处理部分
-
-  //Reader  reader;
-  Value   value;
   cout<<"socket project 02"<<endl;
   Firmware firm("./firmware/firmware_2.0.bin");
   long len = firm.GetFileLength();
@@ -38,8 +37,8 @@ int main(int argc,char *argv[])
   cout<<"create a socket"<<endl;
   if((sockfd=socket(AF_INET,SOCK_STREAM,0))==-1)  //创建一个socket描述符
   {
-    perror("socket"); // 在系统打印的错误信息之前加入perror的内容，方便定位
-    exit(1);
+	perror("socket"); // 在系统打印的错误信息之前加入perror的内容，方便定位
+	exit(1);
   }
   //设置IP TCP 和端口
   service_addr.sin_family = AF_INET;
@@ -49,106 +48,83 @@ int main(int argc,char *argv[])
   //帮顶socket和IP端口
   if(bind(sockfd,(struct sockaddr*)&service_addr,sizeof(struct sockaddr))==-1)
   {
-    perror("bind");
-    exit(1);
+	perror("bind");
+	exit(1);
   }
-
-    cout<<"start listening"<<endl;
+  cout<<"start listening"<<endl;
   //监听端口
   if(listen(sockfd,BACKLOG)==-1)
   {
-    perror("listen");
-    exit(1);
+	perror("listen");
+	exit(1);
   }
+  //Json 对象
+  Reader  reader;
+  Value   value;
   //连接端口并处理
   sin_size = sizeof(struct sockaddr_in);
   cout<<"loop start"<<endl;
   int i=0;
   while(1)
   {
-    cout<<"count　:"<<i++<<endl;
-    sin_size = sizeof(struct sockaddr_in);
-    if((newfd = accept(sockfd,(struct sockaddr*)&client_addr,(socklen_t*)&sin_size))==-1)
-    {
-      cout<<"accept"<<endl;
-      perror("accept");
-      continue;
-    }
-    cout<<"Client IP"<<inet_ntoa(client_addr.sin_addr)<<endl;
-    if(!fork())  //child process
-    {
-      char * terminal_request = (char*)malloc(100*sizeof(char));
-      if(recv(newfd,terminal_request,100,0)==-1)
-      { 
-        cout<<"can not get first terminal pack"<<endl;
-        close(newfd);
-        exit(0);
-      }
-      if(NULL==strstr(terminal_request,"IMEI"))
-      {
-        cout<<"can not get imei"<<endl;
-        close(newfd);
-        exit(0);
-      }
-      char * result = strstr(terminal_request,"IMEI");
-      cout<<"miei is "<<result<<endl;
-      int pack_count = 0;
-      while(1)
-      {
-        pack_count++;
-        char  pack_count_flag[6]={0};
-        pack_count_flag[0] = 'S';
-        pack_count_flag[1] = 'T';
-        pack_count_flag[2] = 'A';
-        pack_count_flag[3] = pack_count/100+'0';
-        pack_count_flag[4] = (pack_count/10)%10+'0';
-        pack_count_flag[5] = pack_count%10+'0';
-        if(recv(newfd,terminal_request,100,0)==-1)
-        { 
-          cout<<"can not get terminal request firmware pack"<<endl;
-          close(newfd);
-          exit(0);
-        }
-        if(NULL==strstr(terminal_request,pack_count_flag))
-        {
-          cout<<"can not get imei"<<endl;
-          close(newfd);
-          exit(0);
-        }
-        char *buf = (char*)malloc(109*sizeof(char));
-        strcpy(buf,"STA");
-        char  pack_back_flag[3]={0};
-        pack_back_flag[0] = pack_count/100+'0';
-        pack_back_flag[1] = (pack_count/10)%10+'0';
-        pack_back_flag[2] = pack_count%10+'0';
-        strcat(buf,pack_back_flag);
-        for(int i=0;i<100;i++)
-        {
-          buf[i+6] = firm_buf[(pack_count-1)*100+i];
-        }
-        buf[106] = 'E';
-        buf[107] = 'N';
-        buf[108] = 'D';
-        if(send(newfd,buf,109,0)==-1)
-        { 
-          cout<<"can not send terminal request firmware pack"<<endl;
-          free(buf);
-          close(newfd);
-          exit(0);
-        }
-        free(buf);
-        if(pack_count>=30)
-        {
-          break;
-        }
-      }
-      free(terminal_request);          
-      cout<<"update finish"<<endl;
-      close(newfd);
-      exit(0);
-     }
-    int terminal;
-    while(waitpid(-1,NULL,WNOHANG)>0);
+
+	sin_size = sizeof(struct sockaddr_in);
+	if((newfd = accept(sockfd,(struct sockaddr*)&client_addr,(socklen_t*)&sin_size))==-1)
+	{
+	  cout<<"accept"<<endl;
+	  perror("accept");
+	  continue;
+	}
+	cout<<"Client IP"<<inet_ntoa(client_addr.sin_addr)<<endl;
+	if(!fork())  //child process
+	{
+	  char * terminal_request = (char*)malloc(500*sizeof(char));
+	  while(1)
+	  {
+		if(recv(newfd,terminal_request,500,0)==-1)
+		{ 
+			cout<<"can not get first terminal pack"<<endl;
+			close(newfd);
+			exit(0);
+		}
+			string json_buf = terminal_request;
+		if(reader.parse(json_buf,value))
+		{
+		  if(!value["imei"].isNull())  //第一个升级包上报IMEI的处理
+			{
+					// To do database
+					cout<<"device imei:"<<value["imei"].asString()<<endl;
+					cout<<"device soft version:"<<value["software_version"].asString()<<endl;
+					cout<<"device hard version:"<<value["hardware_version"].asString()<<endl;
+					//To replay terminal
+			}
+		  if(!value["pack_num"].isNull())  //固件内容申请包
+		    {
+			  // To do database
+			  cout<<"pack_number:"<<value["pack_num"].asInt()<<endl;
+			  //To replay terminal
+		    }
+		  if(!value["pack_status"].isNull())  //固件升级完成上报
+		    {
+			  // To do database
+			  cout<<"pack_number:"<<value["pack_status"].asInt()<<endl;
+			  //To replay terminal
+		    }
+		}
+		else
+		{
+		  free(terminal_request);
+		  cout<<"can not get imei"<<endl;
+		  close(newfd);
+		  exit(0);
+		}
+	 }
+	 free(terminal_request);          
+	 cout<<"update finish"<<endl;
+	 close(newfd);
+	 exit(0);
+	}
+	while(waitpid(-1,NULL,WNOHANG)>0);
   }
   return 0;
 }
