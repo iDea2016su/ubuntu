@@ -8,6 +8,7 @@ public:
 	OtaString(std::string pstring);
 	~OtaString();
 	std::string GetPack(int start,int end);
+	static std::string GetFormotStringFromInt(int plength,int value);
 private:
 	std::string ota_buf_;
 	int length_;
