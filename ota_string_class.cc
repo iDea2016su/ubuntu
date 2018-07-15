@@ -38,7 +38,11 @@ string OtaString::GetFormotStringFromInt(int plength,int value)
 	{
 		tmp[plength-i] = v[l-i];
 	}
-    string result = tmp;
+    string result;
+    for(int i=0;i<plength;i++)
+    {
+    	result[i] = tmp[i];
+    } 
     free(tmp);
     return result;
 }
