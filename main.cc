@@ -97,7 +97,8 @@ int main(int argc,char *argv[])
 					cout<<"device imei:"<<value["imei"].asString()<<endl;
 					cout<<"device soft version:"<<value["software_version"].asString()<<endl;
 					cout<<"device hard version:"<<value["hardware_version"].asString()<<endl;
-					string length_string = OtaString::GetFormotStringFromInt(5,len);
+					string length_string = OtaString::GetFormotStringFromInt(10,len);
+					cout<<"length_string:"<<length_string<<endl;
 					if(huka_terminal_replay.Send("imeirep",length_string,"0103","end")==-1)
 					{
 						free(terminal_request);

@@ -33,6 +33,7 @@ string OtaString::GetFormotStringFromInt(int plength,int value)
 	memset(tmp,plength+1,0);
 	memset(tmp,plength,'0');
 	string v = to_string(value);
+	cout<<"string v:"<<v<<endl;
     int l = v.length();
 	for(int i=0;i<l;i++)
 	{
