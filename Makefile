@@ -5,7 +5,7 @@ cc = g++
 
 
 main : clean $(objects)
-	$(cc) -o main $(objects)
+	$(cc) -o main $(objects) -ljson
 
 main.o : ota_file_class.h
 

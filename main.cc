@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <json/json.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -13,12 +14,16 @@
 #include "ota_file_class.h"
 
 using namespace std;
+using namespace Json;
 
 #define MYPORT   5566    //服务器端口
 #define BACKLOG  20   //多少等待链接控制
 int main(int argc,char *argv[])
 {
   //更新文件处理部分
+
+  //Reader  reader;
+  Value   value;
   cout<<"socket project 02"<<endl;
   Firmware firm("./firmware/firmware_2.0.bin");
   long len = firm.GetFileLength();
