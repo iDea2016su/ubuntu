@@ -79,6 +79,7 @@ int main(int argc,char *argv[])
 	if(!fork())  //child process
 	{
 	  char * terminal_request = (char*)malloc(500*sizeof(char));
+	  TerminalReply huka_terminal_replay(newfd);
 	  while(1)
 	  {
 		if(recv(newfd,terminal_request,500,0)==-1)
@@ -96,6 +97,13 @@ int main(int argc,char *argv[])
 					cout<<"device imei:"<<value["imei"].asString()<<endl;
 					cout<<"device soft version:"<<value["software_version"].asString()<<endl;
 					cout<<"device hard version:"<<value["hardware_version"].asString()<<endl;
+					if(huka_terminal_replay.Send("imeirep","00543","0103","end")==-1)
+					{
+						free(terminal_request);
+		  				cout<<"can not reply imei"<<endl;
+		  				close(newfd);
+		  			    exit(0);
+					}
 					//To replay terminal
 			}
 		  if(!value["pack_num"].isNull())  //固件内容申请包
