@@ -6,8 +6,7 @@ class OtaString
 {
 public:
 	OtaString(std::string pstring);
-	~OtaString();
-	std::string GetPack(int start,int end);
+	std::string GetPack(int start,int length);
 	static std::string GetFormotStringFromInt(int plength,int value);
 private:
 	std::string ota_buf_;

@@ -76,6 +76,7 @@ int main(int argc,char *argv[])
 	  continue;
 	}
 	cout<<"Client IP"<<inet_ntoa(client_addr.sin_addr)<<endl;
+	OtaString firmware_string(firm_buf);
 	if(!fork())  //child process
 	{
 	  char * terminal_request = (char*)malloc(500*sizeof(char));
@@ -93,45 +94,52 @@ int main(int argc,char *argv[])
 		{
 		  if(!value["imei"].isNull())  //第一个升级包上报IMEI的处理
 			{
-					// To do database
-					cout<<"device imei:"<<value["imei"].asString()<<endl;
-					cout<<"device soft version:"<<value["software_version"].asString()<<endl;
-					cout<<"device hard version:"<<value["hardware_version"].asString()<<endl;
-					string length_string = OtaString::GetFormotStringFromInt(5,len);
-					if(huka_terminal_replay.Send("imeirep",length_string.c_str(),"0103","end")==-1)
-					{
-						free(terminal_request);
-		  				cout<<"can not reply imei"<<endl;
-		  				close(newfd);
-		  			    exit(0);
-					}
-					//To replay terminal
+				// To do database
+				cout<<"device imei:"<<value["imei"].asString()<<endl;
+				cout<<"device soft version:"<<value["software_version"].asString()<<endl;
+				cout<<"device hard version:"<<value["hardware_version"].asString()<<endl;
+				string length_string = OtaString::GetFormotStringFromInt(5,len);
+				if(huka_terminal_replay.Send("imeirep",length_string.c_str(),"0103","end")==-1)
+				{
+					free(terminal_request);
+	  				cout<<"can not reply imei"<<endl;
+	  				close(newfd);
+	  			    exit(0);
+				}
 			}
 		  if(!value["pack_num"].isNull())  //固件内容申请包
 		    {
 			  // To do database
-			  cout<<"pack_number:"<<value["pack_num"].asInt()<<endl;
+			    int pack_number = value["pack_num"].asInt();
+			    cout<<"pack_number:"<<pack_number<<endl;
+			    string length_string = OtaString::GetFormotStringFromInt(5,pack_number);
+			    string pack_buf = firmware_string.GetPack((pack_number-1)*256,256);
+			    if(huka_terminal_replay.Send("firmware",pack_buf.c_str(),"end")==-1)
+				{
+					free(terminal_request);
+	  				cout<<"can not reply firmware request"<<endl;
+	  				close(newfd);
+	  			    exit(0);
+				}
 			  //To replay terminal
 		    }
 		  if(!value["pack_status"].isNull())  //固件升级完成上报
 		    {
 			  // To do database
-			  cout<<"pack_number:"<<value["pack_status"].asInt()<<endl;
-			  //To replay terminal
+			  cout<<"upgrade finish"<<endl;
+			  free(terminal_request);
+		      close(newfd);
+		      exit(0);
 		    }
 		}
 		else
 		{
-		  free(terminal_request);
-		  cout<<"can not get imei"<<endl;
-		  close(newfd);
-		  exit(0);
+		 	  cout<<"invalid package"<<endl;
+			  free(terminal_request);
+		      close(newfd);
+		      exit(0);
 		}
-	 }
-	 free(terminal_request);          
-	 cout<<"update finish"<<endl;
-	 close(newfd);
-	 exit(0);
+	 }       
 	}
 	while(waitpid(-1,NULL,WNOHANG)>0);
   }

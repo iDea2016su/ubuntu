@@ -9,7 +9,7 @@ OtaString::OtaString(string pstring)
 	length_ = ota_buf_.length();
 	start_ = 0;
 	end_ = 0;
-}
+};
 string OtaString::GetPack(int start,int plength)
 {
 	if(start<0||start>length_)
@@ -26,7 +26,7 @@ string OtaString::GetPack(int start,int plength)
 	string result = tmp;
 	free(tmp);
 	return result;
-}
+};
 string OtaString::GetFormotStringFromInt(int plength,int value)
 {
 	string v = to_string(value);
@@ -41,4 +41,4 @@ string OtaString::GetFormotStringFromInt(int plength,int value)
     	head[i] = v[i-plength+l];
     }
     return head;
-}
+};
