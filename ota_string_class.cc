@@ -29,20 +29,16 @@ string OtaString::GetPack(int start,int plength)
 }
 string OtaString::GetFormotStringFromInt(int plength,int value)
 {
-	char * tmp = (char*)malloc(plength*sizeof(char)+1);
-	memset(tmp,plength+1,0);
-	memset(tmp,plength,'0');
 	string v = to_string(value);
+    string head;
     int l = v.length();
-	for(int i=0;i<l;i++)
-	{
-		tmp[plength-i] = v[l-i];
-	}
-    string result;
-    for(int i=0;i<plength;i++)
+    for (int i = 0; i < plength-l; ++i)
     {
-    	result[i] = tmp[i];
-    } 
-    //free(tmp);
-    return result;
+    	head[i]='0';
+    }
+     for (int i = plength-l; i < plength; i++)
+    {
+    	head[i] = v[i-plength+l];
+    }
+    return head;
 }
